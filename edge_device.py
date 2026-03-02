@@ -56,7 +56,7 @@ def main():
         print_status("ERROR", "Fog server not available - start it first!")
     
     # Start camera
-    cap = cv2.VideoCapture(0)
+    cap = cv2.VideoCapture(3)
     if not cap.isOpened():
         print_status("ERROR", "Could not open camera")
         sys.exit(1)
@@ -69,6 +69,7 @@ def main():
     print("CONTROLS:")
     print("  q - Quit")
     print("  r - Register current face")
+    print("  x - Remove a user")
     print("  l - List registered users")
     print("=" * 50)
     
@@ -182,6 +183,32 @@ def main():
                 print("=" * 50 + "\n")
             else:
                 print_status("ERROR", "No face detected - look at camera first")
+
+        elif key == ord('x'):
+            print("\n" + "=" * 50)
+            print("REMOVE USER")
+            print("=" * 50)
+            try:
+                response = requests.get(f"{CLOUD_URL}/list_users", timeout=5)
+                users = response.json().get('users', [])
+                if not users:
+                    print_status("ERROR", "No users registered")
+                else:
+                    for user in users:
+                        auth_str = "✓" if user['authorized'] else "✗"
+                        print(f"  {auth_str} {user['name']} ({user['role']})")
+                    name = input("Enter name to remove: ").strip()
+                    if not name:
+                        print_status("ERROR", "Name cannot be empty")
+                    else:
+                        response = requests.post(f"{CLOUD_URL}/remove_face", json={"name": name}, timeout=5)
+                        if response.json().get('success'):
+                            print_status("INFO", f"Removed {name} from database")
+                        else:
+                            print_status("ERROR", f"User '{name}' not found")
+            except Exception as e:
+                print_status("ERROR", f"Could not connect to cloud: {e}")
+            print("=" * 50 + "\n")
                 
         elif key == ord('l'):
             print("\n" + "=" * 50)

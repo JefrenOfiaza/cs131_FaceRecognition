@@ -121,15 +121,23 @@ def list_users():
         })
     return jsonify({"users": user_list})
 
-
-@app.route('/delete_user/<name>', methods=['DELETE'])
-def delete_user(name):
+@app.route('/remove_face', methods=['POST'])
+def remove_face():
+    data = request.json
+    name = data.get('name')
+    if not name:
+        return jsonify({"success": False, "error": "No name provided"}), 400
+    
     conn = sqlite3.connect(DB_FILE)
-    conn.execute("DELETE FROM users WHERE name = ?", (name,))
+    cursor = conn.execute("DELETE FROM users WHERE name = ?", (name,))
     conn.commit()
+    deleted = cursor.rowcount > 0
     conn.close()
-    print(f"[DB] Deleted {name}")
-    return jsonify({"success": True})
+    
+    if deleted:
+        print(f"[DB] Removed {name}")
+    
+    return jsonify({"success": deleted})
 
 
 if __name__ == '__main__':
