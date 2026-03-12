@@ -56,7 +56,7 @@ def main():
         print_status("ERROR", "Fog server not available - start it first!")
     
     # Start camera
-    cap = cv2.VideoCapture(3)
+    cap = cv2.VideoCapture(0)
     if not cap.isOpened():
         print_status("ERROR", "Could not open camera")
         sys.exit(1)
@@ -97,12 +97,17 @@ def main():
                     if time.time() - last_send_time >= SEND_COOLDOWN:
                         last_send_time = time.time()
                         try:
+                            #start_time = time.time()
+
                             response = requests.post(
                                 f"{FOG_URL}/check_access",
                                 json={"device_id": DEVICE_ID, "encoding": current_encoding.tolist()},
                                 timeout=5
                             )
-                            last_result = response.json()
+
+                            #end_time = time.time()
+                            #latency_ms = (end_time - start_time) * 1000
+                            #print_status("INFO", f"System latency: {latency_ms:.2f} ms")
                             
                             decision = last_result.get('decision')
                             name = last_result.get('name')
